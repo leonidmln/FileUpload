@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+
+    <input type="file" id="file" />
+    <div style="margin:7px 0px 10px;">
+        <button id="btnUpload">upload</button>
+    </div>
+
+    <div style="position:relative;width:296px;background:#f0f0f0">
+        <div id="progress" style="background: blue; height: 20px;width:0"></div>
+    </div>
+    <br />
+    <div>
+        <input type="text" style="width:300px" id="txtGUID" /> <input type="button" value="Copy to Clipboard" id="btnCopy" />
+
+    </div>
+
+    <script language="javascript" type="text/javascript">
+        $(function () {
+            $("#btnCopy").click(function () {
+                $("#txtGUID").select();
+                document.execCommand('copy');
+            });
+
+            $("#btnUpload").click(function () {
+                var progressEle = $("#progress");
+                progressEle.css("background", "blue");
+
+                var data = document.getElementById("file").files[0];
+
+                var formData = new FormData();
+
+                formData.append("files", data);
+
+                $.ajax({
+                    url: "/Home/UploadFile",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    type: "POST",
+                    xhr: function () {
+                        var xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener("progress", function (evt) {
+                            if (evt.lengthComputable) {
+                                var progress = Math.round((evt.loaded / evt.total) * 100);
+                                progressEle.width(progress + "%");
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function (data) {
+                        if (data.state == 0) {
+                            progressEle.css("background", "green");
+                            $("#txtGUID").val(data.file_name);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
